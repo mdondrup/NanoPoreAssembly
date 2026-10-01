@@ -1,0 +1,12 @@
+/Lsalmonis_raw_data/
+/.snakemake/
+/.venv/
+
+/results/*
+!/results/.gitkeep
+/logs/*
+!/logs/.gitkeep
+/resources/
+
+__pycache__/
+*.py[cod]

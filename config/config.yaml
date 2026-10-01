@@ -1,0 +1,21 @@
+raw_data_dir: Lsalmonis_raw_data # Directory containing sample directories with POD5 data
+run_dir_prefix: FK2-AdFe-j13 # Prefix for the run directory containing the POD5 data
+dorado_model: sup
+dorado_device: cuda:all
+# "local" downloads the ONT build matching this machine into resources/dorado;
+# "conda" uses workflow/envs/dorado.yaml instead.
+dorado_install: local
+dorado_version: "2.1.1"
+threads: 64
+# ONT corrected reads; check the flag matches your hifiasm version.
+hifiasm_extra: "--ont"
+# BUSCO lineage dataset, e.g. arthropoda_odb10.
+busco_lineage: arthropoda_odb10
+# Optional NCBI assembly accession (e.g. GCF_016086655.3) used as QUAST reference.
+# Set to null to run QUAST without a reference.
+quast_reference_accession: null
+kmer_k: 21
+genomescope_ploidy: 2
+kmc_memory_gb: 64
+# Optional path to a local Kraken2 database; null disables contamination screening.
+kraken2_db: null

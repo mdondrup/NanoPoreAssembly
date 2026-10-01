@@ -1,0 +1,6 @@
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  # Verify this package/version exists for your platform before using dorado_install: conda.
+  - dorado
