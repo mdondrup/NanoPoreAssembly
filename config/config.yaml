@@ -1,4 +1,4 @@
-raw_data_dir: Lsalmonis_raw_data # Directory containing sample directories with POD5 data
+raw_data_dir: /Data/cbu/cbuelixiruibfs/michaeld/UiB_Eichner_Genome_Sequencing_SeaLice_Families_2025/Lsalmonis_raw_data # Directory containing sample directories with POD5 data
 run_dir_prefix: FK2-AdFe-j13 # Prefix for the run directory containing the POD5 data
 dorado_model: sup
 dorado_device: cuda:all

@@ -13,15 +13,22 @@ if not config.get("dorado_model"):
     )
 
 POD5_DIRS = {
-    f"{sample_dir.name}/{pod5_dir.parent.name}/{pod5_dir.name}": pod5_dir
-    for sample_dir in sorted(Path(config["raw_data_dir"]).glob(config["run_dir_prefix"] 
-    + "-LSK*/" + config["run_dir_prefix"] + "/*/"))
-    for pod5_dir in sorted(sample_dir.rglob("pod5"))
-    + sorted(sample_dir.rglob("pod5_skip"))
+    f"{pod5_dir.parent.name}/{pod5_dir.parent.name}/{pod5_dir.name}": pod5_dir
+    for sample_root in sorted(
+        Path(config["raw_data_dir"]).glob(config["run_dir_prefix"] + "-LSK*/")
+    )
+    for pod5_dir in (
+        sorted(sample_root.rglob("pod5"))
+        + sorted(sample_root.rglob("pod5_skip"))
+    )
 }
 
 if not POD5_DIRS:
     raise ValueError("No pod5 or pod5_skip directories found for FK2-AdFe-j13-LSK")
+
+POD5_FILE_COUNT = sum(
+    len(list(pod5_dir.glob("*.pod5"))) for pod5_dir in POD5_DIRS.values()
+)
 
 LOUSE = config["run_dir_prefix"]
 DEVICE = config["dorado_device"]
@@ -33,6 +40,40 @@ QUAST_REF = (
     f"results/reference/{REF_ACCESSION}/reference.fasta" if REF_ACCESSION else None
 )
 KRAKEN_DB = config.get("kraken2_db")
+
+
+def _print_status(*lines):
+    width = max(map(len, lines))
+    border = f"+{'-' * (width + 2)}+"
+    print("\n" + border)
+    for line in lines:
+        print(f"| {line:<{width}} |")
+    print(border)
+
+
+onstart:
+    _print_status(
+        "L. salmonis genome assembly",
+        "WORKFLOW STARTING",
+        f"Sample: {LOUSE}",
+        f"POD5 signal sources: {len(POD5_DIRS)}",
+        f"POD5 files discovered: {POD5_FILE_COUNT}",
+    )
+
+
+onerror:
+    _print_status(
+        "WORKFLOW FAILED",
+        "Check the failed rule above and its log under logs/.",
+    )
+
+
+onsuccess:
+    _print_status(
+        "WORKFLOW FINISHED SUCCESSFULLY",
+        f"Sample: {LOUSE}",
+        "Results: results/",
+    )
 
 
 def pod5_files(wildcards):
@@ -55,6 +96,11 @@ rule all:
         f"results/qc/coverage/{LOUSE}/coverage.mosdepth.summary.txt",
         *([f"results/qc/kraken2/{LOUSE}/kraken2_report.txt"] if KRAKEN_DB else []),
         *([f"results/qc/dotplot/{LOUSE}/dotplot.png"] if REF_ACCESSION else []),
+
+
+rule basecall_all:
+    input:
+        [f"results/basecalling/{key}/basecalled.bam" for key in POD5_DIRS],
 
 
 if config["dorado_install"] == "conda":
@@ -114,8 +160,9 @@ rule basecall:
         ),
 
     shell:
+        "mkdir -p {params.models_dir} && "
         "{input.dorado:q} basecaller -x 'cuda:all' --emit-moves {params.model:q} "
-        "--models-dir {params.models_dir:q} {params.pod5_dir:q} > {output:q} 2> {log:q}"
+        "--models-directory {params.models_dir:q} {params.pod5_dir:q} > {output:q} 2> {log:q}"
 
 
 # All runs of this louse are pooled into a single call set for assembly.
